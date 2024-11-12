@@ -1,0 +1,36 @@
+from llama_index import (
+    GPTVectorStoreIndex,
+    SimpleDirectoryReader,
+    ServiceContext,
+    StorageContext,
+    LLMPredictor,
+    load_index_from_storage,
+)
+from langchain.chat_models import ChatOpenAI
+
+import openai
+import os
+
+os.environ['OPENAI_API_KEY'] = 'API_KEY'
+openai.api_key = 'API_KEY'
+
+print("started the loading document process...")
+
+documents = SimpleDirectoryReader('C:/Users/tina/Downloads/Source_docs/').load_data()
+
+llm_predictor = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name="gpt-4.0"))
+
+service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor)
+
+print("started the indexing process...")
+
+index = GPTVectorStoreIndex.from_documents(documents, service_context=service_context)
+
+print("storing the index to disk")
+index.storage_context.persist(persist_dir="/kaggle/working/aws_case_documents_index")
+
+print("Querying the index...")
+
+response = index.as_query_engine().query("Write a detailed summary of the corporate HR policies.")
+
+print(response)
