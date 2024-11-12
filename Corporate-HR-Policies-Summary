@@ -11,26 +11,46 @@ from langchain.chat_models import ChatOpenAI
 import openai
 import os
 
-os.environ['OPENAI_API_KEY'] = 'API_KEY'
-openai.api_key = 'API_KEY'
+# Set the OpenAI API key for authentication
+# This key is used to access OpenAI's GPT-4 model through LangChain.
+os.environ['OPENAI_API_KEY'] = 'API_KEY'  # Replace 'API_KEY' with your actual OpenAI API key
+openai.api_key = 'API_KEY'  # Set OpenAI API key for authentication purposes
 
+# Log the start of the document loading process
 print("started the loading document process...")
 
+# Load the documents from a specified directory on the local system
+# The SimpleDirectoryReader class reads all files in the given directory and loads them as document data.
 documents = SimpleDirectoryReader('C:/Users/tina/Downloads/Source_docs/').load_data()
 
+# Set up the language model predictor using OpenAI's GPT-4 model
+# The LLMPredictor is configured with specific model parameters (temperature=0 for deterministic outputs).
 llm_predictor = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name="gpt-4.0"))
 
+# Create a service context that will manage the interaction with the language model
+# The ServiceContext allows the configuration of various services like the LLM predictor.
 service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor)
 
+# Log the start of the indexing process
 print("started the indexing process...")
 
+# Create a GPT-Vector store index from the loaded documents
+# The index helps organize and efficiently query the documents for semantic search.
 index = GPTVectorStoreIndex.from_documents(documents, service_context=service_context)
 
+# Log the process of storing the index to disk
 print("storing the index to disk")
+
+# Persist the index to disk in a specified directory
+# This allows the index to be reloaded later for querying without needing to rebuild it.
 index.storage_context.persist(persist_dir="/kaggle/working/aws_case_documents_index")
 
+# Log the start of querying the index
 print("Querying the index...")
 
+# Query the index for a detailed summary of the corporate HR policies
+# The query is processed using the GPT-4 model through the established service context.
 response = index.as_query_engine().query("Write a detailed summary of the corporate HR policies.")
 
+# Output the query result, which is a detailed summary of the corporate HR policies.
 print(response)
